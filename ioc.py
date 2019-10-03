@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 import random
 from caproto.server import pvproperty, PVGroup, ioc_arg_parser, run
+import numpy
 
 
 class RandomWalkIOC(PVGroup):
+    pos = pvproperty(value=-5.0)
     dt = pvproperty(value=3.0)
     x = pvproperty(value=0.0)
 
@@ -12,7 +14,7 @@ class RandomWalkIOC(PVGroup):
         'Periodically update the value'
         while True:
             # compute next value
-            x = self.x.value + 2 * random.random() - 1
+            x = numpy.exp(-self.pos.value**2)
 
             # update the ChannelData instance and notify any subscribers
             await instance.write(value=x)
