@@ -16,7 +16,7 @@ class Detector(Device):
         # Drain the queue.
         while True:
             try:
-                _ = q.get_nowait()
+                _ = receive_queue.get_nowait()
             except queue.Empty:
                 break
         self.counter = itertools.count()
@@ -40,8 +40,8 @@ class Detector(Device):
         # Drain the message bus.
         while True:
             try:
-                det_reading, pos_reading = q.get_nowait()
-                print(f'received {det_reading.data[0]} from message bus')
+                det_reading, pos_reading = receive_queue.get_nowait()
+                # print(f'received {det_reading.data[0]} from message bus')
             except queue.Empty:
                 raise StopIteration
             i = next(self.counter)
@@ -63,21 +63,32 @@ def fake_kafka(q):
     
     def put_into_bus(det_reading):
         if not pos_readings:
-            print('no pos readings')
+            # print('no pos readings')
             return
         pos_reading = pos_readings[-1]
-        time.sleep(random.random())
-        # print(f'putting {det_reading.data} into message bus')
+        # print(f'x={det_reading.data[0]:.3} pos={pos_reading.data[0]:.3}')
         q.put((det_reading, pos_reading))
+
 
     sub.add_callback(put_into_bus)
     sub.block()
 
 
 # Run fake kafka.
-q = queue.Queue()
-thread = threading.Thread(target=fake_kafka, args=(q,))
+send_queue = queue.Queue()
+thread = threading.Thread(target=fake_kafka, args=(send_queue,))
 thread.start()
+
+def simulated_traffic(send_queue, receive_queue):
+    while True:
+        item = send_queue.get()
+        time.sleep(random.random())
+        receive_queue.put(item)
+
+receive_queue = queue.Queue()
+traffic_thread = threading.Thread(
+    target=simulated_traffic, args=(send_queue, receive_queue))
+traffic_thread.start()
 
 # Subscribe to position
 ctx = Context()
@@ -96,7 +107,6 @@ def plan(threshold):
     yield from bps.kickoff(det, wait=True)
     target_pos = -3.0
     while True:
-        # print(f'motor is at {target_pos:.3}')
         yield from bps.mv(pos, target_pos)
         yield from bps.sleep(0.1)  # fake motor delay
         payload = yield from bps.collect(det)
@@ -108,7 +118,7 @@ def plan(threshold):
                 yield from bps.close_run()
                 print("DONE!")
                 return
-        target_pos += 0.01
+        target_pos += 0.1
 
 # beamline setup code
 
