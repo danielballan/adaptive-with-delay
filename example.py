@@ -94,18 +94,21 @@ pos_subscription.add_callback(append_pos_reading)
 def plan(threshold):
     yield from bps.open_run()
     yield from bps.kickoff(det, wait=True)
-    for target_pos in numpy.linspace(-3, 3, 200):
-        print(f'motor is at {target_pos:.3}')
+    target_pos = -3.0
+    while True:
+        # print(f'motor is at {target_pos:.3}')
         yield from bps.mv(pos, target_pos)
         yield from bps.sleep(0.1)  # fake motor delay
         payload = yield from bps.collect(det)
         for reading in payload:
             x = reading['data']['x']
             historical_pos = reading['data']['pos']
-            print(f"pos={historical_pos:.3} x={x:.3}")
+            print(f"current={target_pos:.3} historical={historical_pos:.3} x={x:.3}")
             if x > threshold:
                 yield from bps.close_run()
+                print("DONE!")
                 return
+        target_pos += 0.01
 
 # beamline setup code
 
