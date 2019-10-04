@@ -109,7 +109,7 @@ def plan(threshold):
     while True:
         yield from bps.mv(pos, target_pos)
         yield from bps.sleep(0.1)  # fake motor delay
-        payload = yield from bps.collect(det)
+        payload = yield from bps.collect(det, stream=True)
         for reading in payload:
             x = reading['data']['x']
             historical_pos = reading['data']['pos']
