@@ -1,0 +1,9 @@
+# Note this this requires a PR branch of bluesky. See PR for details:
+# https://github.com/bluesky/bluesky/pull/1256
+git+https://github.com/danielballan/bluesky@return-from-collect
+caproto
+ipython
+matplotlib
+numpy
+ophyd
+pyqt5
