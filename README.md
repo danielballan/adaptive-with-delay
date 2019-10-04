@@ -28,5 +28,7 @@ Run example:
 
 ```
 ipython -i example.py
-RE(plan(0.5))
+#RE(plan(0.5))
+%matplotlib qt5
+RE(plan(0.5), LivePlot(y="x", x="pos"))
 ```
