@@ -43,7 +43,7 @@ class Detector(Device):
                 det_reading, pos_reading = receive_queue.get_nowait()
                 # print(f'received {det_reading.data[0]} from message bus')
             except queue.Empty:
-                raise StopIteration
+                break
             i = next(self.counter)
             yield {'data': {'x': det_reading.data[0],
                             'pos': pos_reading.data[0]},
